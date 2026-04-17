@@ -1,0 +1,32 @@
+/* ─── 全局主题变量 ─────────────────────────────── */
+:root {
+  --primary: #1890ff;
+  --sidebar-bg: #001428;
+  --sidebar-text: rgba(255,255,255,0.75);
+  --sidebar-active-bg: #1890ff;
+  --sidebar-active-text: #fff;
+  --content-bg: #f0f2f5;
+  --card-bg: #fff;
+  --border: #e8ecf0;
+}
+
+/* 暗色模式 */
+body.dark {
+  --content-bg: #141414;
+  --card-bg: #1f1f1f;
+  --border: #2a2a2a;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+
+/* 全局滚动条 */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.4); }
+
+/* 手机端隐藏 */
+@media (max-width: 768px) {
+  .hidden-mobile { display: none !important; }
+}
