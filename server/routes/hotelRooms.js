@@ -5,15 +5,47 @@ module.exports = function(db) {
 
   // 获取所有客房（含房型信息）
   router.get('/', (req, res) => {
-    const { status, floor, type_id } = req.query
-    let sql = `SELECT r.*, t.name as type_name, t.base_price, t.capacity as type_capacity, t.facilities
-      FROM hotel_rooms r LEFT JOIN room_types t ON r.room_type_id=t.id WHERE 1=1`
+    const { status, floor, type_id, withCheckin } = req.query
+    let sql = `SELECT r.*, t.name as type_name, t.base_price, t.capacity as type_capacity, t.facilities`
     const params = []
+    if (withCheckin) {
+      sql += `, ci.guest_name as checkin_guest_name, ci.guest_phone as checkin_guest_phone,
+        ci.checkin_date as checkin_date, ci.expected_checkout as expected_checkout,
+        ci.id as checkin_id`
+    }
+    sql += ` FROM hotel_rooms r LEFT JOIN room_types t ON r.room_type_id=t.id`
+    if (withCheckin) {
+      sql += ` LEFT JOIN (
+        SELECT * FROM checkins WHERE status='checked_in'
+        AND id IN (SELECT MAX(id) FROM checkins WHERE status='checked_in' GROUP BY room_id)
+      ) ci ON ci.room_id=r.id`
+    }
+    sql += ` WHERE 1=1`
     if (status) { sql += ' AND r.status=?'; params.push(status) }
     if (floor) { sql += ' AND r.floor=?'; params.push(floor) }
     if (type_id) { sql += ' AND r.room_type_id=?'; params.push(type_id) }
     sql += ' ORDER BY r.room_no'
-    res.json({ code: 0, data: db.prepare(sql).all(...params) })
+    const rows = db.prepare(sql).all(...params)
+    // 转换 checkin_info 格式（兼容前端）
+    if (withCheckin) {
+      rows.forEach(r => {
+        if (r.checkin_guest_name) {
+          r.checkin_info = {
+            guest_name: r.checkin_guest_name,
+            guest_phone: r.checkin_guest_phone,
+            checkin_date: r.checkin_date,
+            expected_checkout: r.expected_checkout,
+            id: r.checkin_id
+          }
+        }
+        delete r.checkin_guest_name
+        delete r.checkin_guest_phone
+        delete r.checkin_date
+        delete r.expected_checkout
+        delete r.checkin_id
+      })
+    }
+    res.json({ code: 0, data: rows })
   })
 
   // 新增客房
@@ -41,6 +73,15 @@ module.exports = function(db) {
     if (room && room.status !== 'vacant') return res.json({ code: 1, msg: '房间使用中，无法删除' })
     db.prepare('DELETE FROM hotel_rooms WHERE id=?').run(req.params.id)
     res.json({ code: 0, msg: '删除成功' })
+  })
+
+  // 更新客房状态（标记待清洁/维修中等）
+  router.patch('/:id/status', (req, res) => {
+    const { status } = req.body
+    const valid = ['vacant', 'occupied', 'cleaning', 'maintenance', 'reserved']
+    if (!valid.includes(status)) return res.json({ code: 1, msg: '无效状态值' })
+    db.prepare('UPDATE hotel_rooms SET status=? WHERE id=?').run(status, req.params.id)
+    res.json({ code: 0, msg: '状态已更新' })
   })
 
   // 房型列表

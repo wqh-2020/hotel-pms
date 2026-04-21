@@ -10,8 +10,10 @@ module.exports = function(db) {
   // 预订列表
   router.get('/', (req, res) => {
     const { status, date, page = 1, pageSize = 20 } = req.query
-    let sql = `SELECT r.*, t.name as room_type_name FROM reservations r
-      LEFT JOIN room_types t ON r.room_type_id=t.id WHERE 1=1`
+    let sql = `SELECT r.*, t.name as room_type_name, h.room_no
+      FROM reservations r
+      LEFT JOIN room_types t ON r.room_type_id=t.id
+      LEFT JOIN hotel_rooms h ON r.room_id=h.id WHERE 1=1`
     const params = []
     if (status) { sql += ' AND r.status=?'; params.push(status) }
     if (date) { sql += ' AND date(r.checkin_date)=?'; params.push(date) }
@@ -60,7 +62,7 @@ module.exports = function(db) {
   router.put('/:id', (req, res) => {
     const { guest_name, guest_phone, room_type_id, checkin_date, checkout_date, nights, guest_count, remark } = req.body
     db.prepare('UPDATE reservations SET guest_name=?,guest_phone=?,room_type_id=?,checkin_date=?,checkout_date=?,nights=?,guest_count=?,remark=? WHERE id=?').run(
-      guest_name, guest_phone, room_type_id, checkin_date, checkout_date, nights, guest_count, remark, req.params.id
+      guest_name, guest_phone || null, room_type_id || null, checkin_date, checkout_date || null, nights, guest_count, remark || '', req.params.id
     )
     res.json({ code: 0, msg: '更新成功' })
   })

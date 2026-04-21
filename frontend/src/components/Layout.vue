@@ -45,6 +45,7 @@
         </div>
         <div class="topbar-right">
           <span class="hidden-mobile">{{ hotelName }}</span>
+          <el-tag :type="roleTagType" size="small" effect="plain" class="hidden-mobile">{{ roleLabel }}</el-tag>
           <el-dropdown @command="handleCmd">
             <span class="user-info">
               <el-avatar :size="28" :style="{ background: 'var(--primary)' }">{{ userStore.realname?.slice(0, 1) }}</el-avatar>
@@ -91,6 +92,14 @@ import http from '@/api/http'
 import dayjs from 'dayjs'
 
 const userStore = useUserStore()
+
+// 角色显示
+const roleLabel = computed(() => {
+  return { admin: '管理员', front_desk: '前台', cashier: '收银员', waiter: '服务员' }[userStore.role] || userStore.role
+})
+const roleTagType = computed(() => {
+  return { admin: 'danger', front_desk: 'primary', cashier: 'warning', waiter: '' }[userStore.role] || 'info'
+})
 
 // ── 响应式 ──────────────────────────────────────
 const isMobile = ref(window.innerWidth <= 768)

@@ -31,6 +31,15 @@ npm-debug.log*
 *.swp
 *.swo
 
-# 临时文件
-*.tmp
-*.bak
+
+# 上传文件（运行时生成，不提交）
+server/uploads/
+
+# 调试/测试脚本
+check-csv.js
+debug-csv.js
+show-raw.js
+test-final.js
+test-api.js
+test-edge.js
+

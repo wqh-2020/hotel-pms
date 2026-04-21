@@ -164,7 +164,7 @@ async function submitOrder() {
   if (!cart.value.length) return
   submitting.value = true
   try {
-    const items = cart.value.map(i => ({ product_id: i.id, quantity: i.qty }))
+    const items = cart.value.map(i => ({ product_id: i.id, quantity: i.qty, price: i.price }))
     const res = await retailOrderApi.create({
       items, checkin_id: checkinId.value || null,
       total_amount: cartTotal.value,

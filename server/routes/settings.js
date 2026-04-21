@@ -6,12 +6,19 @@ const fs = require('fs')
 module.exports = function(db, uploadsPath) {
   const router = express.Router()
   const logoDir = path.join(uploadsPath, 'logo')
+  const dishDir = path.join(uploadsPath, 'dishes')
   fs.mkdirSync(logoDir, { recursive: true })
+  fs.mkdirSync(dishDir, { recursive: true })
   const logoStorage = multer.diskStorage({
     destination: logoDir,
     filename: (req, file, cb) => cb(null, `logo-${Date.now()}${path.extname(file.originalname)}`)
   })
+  const dishStorage = multer.diskStorage({
+    destination: dishDir,
+    filename: (req, file, cb) => cb(null, `dish-${Date.now()}${path.extname(file.originalname)}`)
+  })
   const uploadLogo = multer({ storage: logoStorage, limits: { fileSize: 2 * 1024 * 1024 } })
+  const uploadDish = multer({ storage: dishStorage, limits: { fileSize: 2 * 1024 * 1024 } })
 
   router.get('/', (req, res) => {
     const rows = db.prepare('SELECT key, value FROM settings').all()
@@ -37,6 +44,13 @@ module.exports = function(db, uploadsPath) {
   router.delete('/logo', (req, res) => {
     db.prepare('INSERT OR REPLACE INTO settings(key,value) VALUES(?,?)').run('logo_url', '')
     res.json({ code: 0, msg: '已删除' })
+  })
+
+  // 菜品图片上传
+  router.post('/dish-image', uploadDish.single('image'), (req, res) => {
+    if (!req.file) return res.json({ code: 1, msg: '未上传文件' })
+    const url = `/uploads/dishes/${req.file.filename}`
+    res.json({ code: 0, data: { url } })
   })
 
   router.get('/backup', (req, res) => {

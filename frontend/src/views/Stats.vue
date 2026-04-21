@@ -61,7 +61,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, onMounted, onActivated, nextTick } from 'vue'
 import { statsApi } from '@/api/index'
 import * as echarts from 'echarts'
 import dayjs from 'dayjs'
@@ -167,6 +167,7 @@ function exportStats() {
 }
 
 onMounted(loadStats)
+onActivated(loadStats) // 路由切换回来时也自动刷新
 </script>
 
 <style scoped>

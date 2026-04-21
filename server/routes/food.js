@@ -155,7 +155,9 @@ module.exports = function(db) {
   })
   router.post('/sessions/:id/reserve', (req, res) => {
     const { reservation_name, reservation_phone, reservation_time } = req.body
-    db.prepare("UPDATE table_sessions SET status='reserved',reservation_name=?,reservation_phone=?,reservation_time=? WHERE id=?").run(reservation_name, reservation_phone, reservation_time, req.params.id)
+    db.prepare("UPDATE table_sessions SET status='reserved',reservation_name=?,reservation_phone=?,reservation_time=? WHERE id=?").run(
+      reservation_name || null, reservation_phone || null, reservation_time || null, req.params.id
+    )
     res.json({ code: 0, msg: '预定成功' })
   })
   router.post('/sessions/:id/cancel-reserve', (req, res) => {

@@ -24,8 +24,6 @@ router.get('/', (req, res) => {
     params.push(pageSizeNum, (pageNum - 1) * pageSizeNum)
     res.json({ code: 0, data: { list: db.prepare(sql).all(...params), total: total ? total.cnt : 0 } })
   })
-    res.json({ code: 0, data: { list: db.prepare(sql).all(...params), total: total ? total.cnt : 0 } })
-  })
 
   // 入住详情
   router.get('/:id', (req, res) => {

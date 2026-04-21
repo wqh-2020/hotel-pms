@@ -2,7 +2,10 @@
   <div class="login-page">
     <div class="login-card">
       <div class="login-header">
-        <div class="logo">🏨</div>
+        <div class="logo">
+          <img v-if="logoUrl" :src="logoUrl" alt="logo" class="logo-img" />
+          <span v-else>🏨</span>
+        </div>
         <h1>{{ hotelName }}</h1>
         <p>酒店管理系统</p>
       </div>
@@ -18,7 +21,6 @@
           登 录
         </el-button>
       </el-form>
-      <div class="login-footer">admin / 123456</div>
     </div>
   </div>
 </template>
@@ -34,6 +36,7 @@ const router = useRouter()
 const userStore = useUserStore()
 const loading = ref(false)
 const hotelName = ref('聚云酒店管理系统')
+const logoUrl = ref('')
 const form = ref({ username: '', password: '' })
 
 onMounted(async () => {
@@ -41,6 +44,7 @@ onMounted(async () => {
   try {
     const data = await settingsApi.getAll()
     if (data.hotel_name) hotelName.value = data.hotel_name
+    if (data.logo_url) logoUrl.value = data.logo_url
   } catch {}
 })
 
@@ -67,7 +71,8 @@ async function handleLogin() {
 }
 .login-header { text-align: center; margin-bottom: 32px; }
 .logo { font-size: 48px; margin-bottom: 12px; }
+.logo-img { width: 72px; height: 72px; object-fit: contain; border-radius: 8px; }
 h1 { font-size: 22px; color: #1a1a1a; margin-bottom: 4px; }
 p { color: #999; font-size: 14px; }
-.login-footer { text-align: center; margin-top: 16px; font-size: 12px; color: #bbb; }
+
 </style>

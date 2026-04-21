@@ -75,6 +75,13 @@
             <el-icon><User /></el-icon> 办理入住
           </el-button>
           <el-button
+            v-if="selectedRoom.status === 'occupied' && selectedRoom.checkin_info && isOverdue(selectedRoom.checkin_info)"
+            type="danger"
+            @click="handleDueCheckout"
+          >
+            <el-icon><Clock /></el-icon> 到期结账退房
+          </el-button>
+          <el-button
             v-if="['vacant','occupied'].includes(selectedRoom.status)"
             :type="selectedRoom.status === 'cleaning' ? 'success' : 'warning'"
             @click="changeStatus('cleaning')"
@@ -101,6 +108,7 @@ import { useRouter } from 'vue-router'
 import { hotelRoomApi } from '@/api/index'
 import { ElMessage } from 'element-plus'
 import http from '@/api/http'
+import dayjs from 'dayjs'
 
 const router = useRouter()
 const isMobile = ref(window.innerWidth <= 768)
@@ -164,6 +172,18 @@ function goCheckin() {
   router.push(`/checkins?room_id=${selectedRoom.value.id}&room_no=${selectedRoom.value.room_no}`)
 }
 
+// 判断预计退房日期是否已到期（<= 今日）
+function isOverdue(info) {
+  if (!info?.expected_checkout) return false
+  return dayjs().startOf('day').isAfter(dayjs(info.expected_checkout).subtract(1, 'day'))
+}
+
+// 到期结账退房（跳转入住管理页面执行退房）
+async function handleDueCheckout() {
+  actionVisible.value = false
+  router.push(`/checkins?room_id=${selectedRoom.value.id}&room_no=${selectedRoom.value.room_no}&action=checkout`)
+}
+
 async function changeStatus(status) {
   try {
     await http.patch(`/hotel-rooms/${selectedRoom.value.id}/status`, { status })
@@ -171,7 +191,9 @@ async function changeStatus(status) {
     selectedRoom.value.status = status
     actionVisible.value = false
     loadData()
-  } catch {}
+  } catch (e) {
+    ElMessage.error(e?.response?.data?.msg || '状态更新失败')
+  }
 }
 
 onMounted(loadData)

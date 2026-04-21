@@ -16,6 +16,8 @@ http.interceptors.request.use(config => {
 // 响应拦截器
 http.interceptors.response.use(
   response => {
+    // blob 类型直接返回（导出文件）
+    if (response.config.responseType === 'blob') return response.data
     const data = response.data
     if (data.code !== 0) {
       ElMessage.error(data.msg || '操作失败')

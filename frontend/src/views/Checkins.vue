@@ -236,10 +236,24 @@ async function loadData() {
 async function openDialog() {
   form.value = { room_id: route.query.room_id ? Number(route.query.room_id) : null, guest_name: '', guest_phone: '', guest_id_no: '', guest_count: 1, checkin_date: dayjs().format('YYYY-MM-DD'), nights: 1, price_per_night: 0, deposit: 0, paid_amount: 0, pay_type: 'cash', remark: '' }
   const rooms = await hotelRoomApi.getAll({ status: 'vacant' })
-  vacantRooms.value = rooms
+  // 到期退房模式：只列出在住房间供选择
+  const listRooms = route.query.action === 'checkout'
+    ? await hotelRoomApi.getAll({ status: 'occupied' })
+    : rooms
+  vacantRooms.value = listRooms
   if (form.value.room_id) {
-    const r = rooms.find(r => r.id == form.value.room_id)
-    if (r) { form.value.price_per_night = r.price; calcTotal() }
+    const r = listRooms.find(r => r.id == form.value.room_id)
+    if (r) {
+      form.value.price_per_night = r.price
+      calcTotal()
+      // 到期退房模式：直接弹出退房弹窗
+      if (route.query.action === 'checkout' && r.checkin_id) {
+        dialogVisible.value = false
+        const row = list.value.find(x => x.id === r.checkin_id)
+        if (row) openCheckout(row)
+        return
+      }
+    }
   }
   dialogTitle.value = '办理入住'
   dialogVisible.value = true
